@@ -1,0 +1,55 @@
+name: Windows integration
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  integration:
+    name: Moto and zero-code SDK integration
+    runs-on: windows-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: |
+            host-moto/requirements.txt
+            examples/python-client/requirements.txt
+
+      - name: Install central AWS Mock
+        shell: pwsh
+        run: .\host-moto\scripts\Install-AwsMock.ps1
+
+      - name: Start central AWS Mock
+        shell: pwsh
+        run: .\host-moto\scripts\Start-AwsMock.ps1
+
+      - name: Run central smoke test
+        shell: pwsh
+        run: '& .\host-moto\.venv\Scripts\python.exe .\host-moto\smoke_test.py'
+
+      - name: Install independent client
+        shell: pwsh
+        run: .\examples\python-client\Install.ps1
+
+      - name: Run zero-code client integration test
+        shell: pwsh
+        run: .\examples\python-client\Run-Test.ps1
+
+      - name: Stop central AWS Mock
+        if: always()
+        shell: pwsh
+        run: .\host-moto\scripts\Stop-AwsMock.ps1

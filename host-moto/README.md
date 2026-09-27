@@ -4,6 +4,9 @@ This implementation runs Moto Server 5.2.3 directly as a Windows Python process
 at `http://127.0.0.1:4566`. Applications use the standard external endpoint
 environment setting, so supported SDKs require no application source changes.
 
+In command examples, replace `<repository-root>` with the directory where this
+repository was cloned.
+
 ## Supported scope
 
 The single endpoint emulates commonly used operations for S3, DynamoDB, SQS,
@@ -25,7 +28,7 @@ Limitations:
 Python 3.10 or newer is required.
 
 ```powershell
-cd C:\Project_help\AWS_MOCK\host-moto
+cd <repository-root>\host-moto
 .\scripts\Install-AwsMock.ps1
 ```
 
@@ -78,7 +81,7 @@ $env:BOOTSTRAP_DYNAMODB_TABLE = "project-a-items"
 Start the central mock, then in the other project's PowerShell terminal:
 
 ```powershell
-. C:\Project_help\AWS_MOCK\host-moto\scripts\Use-AwsMock.ps1
+. <repository-root>\host-moto\scripts\Use-AwsMock.ps1
 Enable-AwsMock
 
 # Start the application in this same terminal.

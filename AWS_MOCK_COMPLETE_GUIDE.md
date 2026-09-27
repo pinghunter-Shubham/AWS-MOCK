@@ -19,7 +19,8 @@ urlcolor: blue
 # Document purpose
 
 This document explains how to install, operate, and consume the central AWS Mock
-located at `C:\Project_help\AWS_MOCK`. It is written as a complete onboarding and
+from the directory where this repository is cloned. That location is represented
+as `<repository-root>`. It is written as a complete onboarding and
 operations guide and is structured so that it can be converted directly from
 Markdown to a numbered PDF with a table of contents.
 
@@ -186,10 +187,14 @@ that every AWS operation or every validation rule is implemented.
 # Folder layout
 
 ```text
-C:\Project_help\AWS_MOCK\
+<repository-root>\
 |
 |-- AWS_MOCK_COMPLETE_GUIDE.md       This guide
+|-- LICENSE                          Apache License 2.0
 |-- README.md                        Short command reference
+|-- .github\workflows\test.yml       Windows integration workflow
+|-- docs\assets\                     Architecture and test visuals
+|-- examples\python-client\          Zero-code endpoint integration example
 `-- host-moto\
     |-- README.md                    Implementation notes
     |-- requirements.txt             Pinned Python dependencies
@@ -210,6 +215,13 @@ C:\Project_help\AWS_MOCK\
 The `.venv`, `logs`, and `state` directories are runtime or generated content.
 Application projects should not import Python modules from the mock's virtual
 environment. Each application should manage its own dependencies.
+
+## Continuous integration
+
+The repository includes `.github\workflows\test.yml`. On pushes and pull
+requests to `main`, a Windows runner installs the central server, starts it, runs
+the assertion-based smoke test, runs the independent zero-code client test, and
+stops the server even when an earlier step fails.
 
 # First-time installation
 
@@ -250,7 +262,7 @@ This setting disappears when the terminal is closed.
 ## Install the server dependencies
 
 ```powershell
-cd C:\Project_help\AWS_MOCK\host-moto
+cd <repository-root>\host-moto
 .\scripts\Install-AwsMock.ps1
 ```
 
@@ -266,7 +278,7 @@ It does not install Python packages globally.
 ## Start the server
 
 ```powershell
-cd C:\Project_help\AWS_MOCK\host-moto
+cd <repository-root>\host-moto
 .\scripts\Start-AwsMock.ps1
 ```
 
@@ -341,7 +353,7 @@ $env:BOOTSTRAP_SNS_TOPIC = "project-a-events"
 $env:BOOTSTRAP_SECRET_NAME = "project-a/config"
 $env:BOOTSTRAP_KINESIS_STREAM = "project-a-stream"
 
-cd C:\Project_help\AWS_MOCK\host-moto
+cd <repository-root>\host-moto
 .\scripts\Start-AwsMock.ps1
 ```
 
@@ -356,7 +368,7 @@ Start the central server first. In the application project's terminal, import
 the helper:
 
 ```powershell
-. C:\Project_help\AWS_MOCK\host-moto\scripts\Use-AwsMock.ps1
+. <repository-root>\host-moto\scripts\Use-AwsMock.ps1
 Enable-AwsMock
 ```
 
@@ -366,7 +378,7 @@ the current PowerShell session.
 Start the application from the same terminal:
 
 ```powershell
-cd C:\Path\To\YourProject
+cd <application-root>
 
 # Use the command appropriate for the project.
 python app.py
@@ -660,7 +672,7 @@ is obvious at the command line.
 ## Prepare a provisioning terminal
 
 ```powershell
-. C:\Project_help\AWS_MOCK\host-moto\scripts\Use-AwsMock.ps1
+. <repository-root>\host-moto\scripts\Use-AwsMock.ps1
 Enable-AwsMock
 
 $AwsMockEndpoint = "http://127.0.0.1:4566"
@@ -1215,7 +1227,7 @@ be identical.
 ## Step 3: start and verify the central mock
 
 ```powershell
-cd C:\Project_help\AWS_MOCK\host-moto
+cd <repository-root>\host-moto
 .\scripts\Start-AwsMock.ps1
 .\scripts\Get-AwsMockStatus.ps1
 ```
@@ -1223,7 +1235,7 @@ cd C:\Project_help\AWS_MOCK\host-moto
 ## Step 4: enable the mock in the project terminal
 
 ```powershell
-. C:\Project_help\AWS_MOCK\host-moto\scripts\Use-AwsMock.ps1
+. <repository-root>\host-moto\scripts\Use-AwsMock.ps1
 Enable-AwsMock
 ```
 
@@ -1242,7 +1254,7 @@ python -c "import boto3; print(boto3.client('s3').meta.endpoint_url)"
 ## Step 7: start the application in the same terminal
 
 ```powershell
-cd C:\Path\To\orders-service
+cd <application-root>
 python app.py
 ```
 
@@ -1269,13 +1281,13 @@ Disable-AwsMock
 The independent reference project is located at:
 
 ```text
-C:\Project_help\AWS_MOCK_CLIENT_TEST
+<repository-root>\examples\python-client
 ```
 
 Install and execute it:
 
 ```powershell
-cd C:\Project_help\AWS_MOCK_CLIENT_TEST
+cd <repository-root>\examples\python-client
 .\Install.ps1
 .\Run-Test.ps1
 ```
@@ -1292,6 +1304,9 @@ sets the endpoint in the process environment. It exercises:
 - Kinesis create and put.
 
 Temporary test resources are removed during teardown.
+
+The same example runs in GitHub Actions and is the primary proof that application
+clients receive the local endpoint entirely from their process environment.
 
 # Multiple-project operation
 
@@ -1337,7 +1352,7 @@ Moto stores active state in server memory. This package enables Moto Recorder,
 which appends incoming HTTP requests to:
 
 ```text
-C:\Project_help\AWS_MOCK\host-moto\state\moto-recording.log
+<repository-root>\host-moto\state\moto-recording.log
 ```
 
 During the next start, the start script replays the recorded requests.
@@ -1369,7 +1384,7 @@ Keep project provisioning idempotent even when recording is enabled.
 Stop the server before copying the recording:
 
 ```powershell
-cd C:\Project_help\AWS_MOCK\host-moto
+cd <repository-root>\host-moto
 .\scripts\Stop-AwsMock.ps1
 
 $BackupStamp = Get-Date -Format "yyyyMMdd-HHmmss"
@@ -1390,7 +1405,7 @@ This procedure starts from fresh runtime state while keeping the old recording
 as a recoverable backup.
 
 ```powershell
-cd C:\Project_help\AWS_MOCK\host-moto
+cd <repository-root>\host-moto
 .\scripts\Stop-AwsMock.ps1
 
 $RecoveryStamp = Get-Date -Format "yyyyMMdd-HHmmss"
@@ -1486,7 +1501,7 @@ before performing any task intended for real AWS.
 ## Start-of-day checklist
 
 ```powershell
-cd C:\Project_help\AWS_MOCK\host-moto
+cd <repository-root>\host-moto
 .\scripts\Start-AwsMock.ps1
 .\scripts\Get-AwsMockStatus.ps1
 ```
@@ -1494,7 +1509,7 @@ cd C:\Project_help\AWS_MOCK\host-moto
 For each project terminal:
 
 ```powershell
-. C:\Project_help\AWS_MOCK\host-moto\scripts\Use-AwsMock.ps1
+. <repository-root>\host-moto\scripts\Use-AwsMock.ps1
 Enable-AwsMock
 ```
 
@@ -1509,7 +1524,7 @@ Disable-AwsMock
 Optionally stop the central server:
 
 ```powershell
-cd C:\Project_help\AWS_MOCK\host-moto
+cd <repository-root>\host-moto
 .\scripts\Stop-AwsMock.ps1
 ```
 
@@ -1538,7 +1553,7 @@ Connection refused
 Checks:
 
 ```powershell
-cd C:\Project_help\AWS_MOCK\host-moto
+cd <repository-root>\host-moto
 .\scripts\Get-AwsMockStatus.ps1
 Get-NetTCPConnection -LocalPort 4566 -State Listen -ErrorAction SilentlyContinue
 ```
@@ -1632,7 +1647,7 @@ Review logs:
 
 ```powershell
 Get-Content `
-    C:\Project_help\AWS_MOCK\host-moto\logs\moto.stderr.log `
+    <repository-root>\host-moto\logs\moto.stderr.log `
     -Tail 100
 ```
 
@@ -1669,7 +1684,7 @@ Recommended process:
 5. rebuild the isolated Python environment;
 6. start the server;
 7. run the central smoke test;
-8. run `AWS_MOCK_CLIENT_TEST`; and
+8. run `examples\python-client`; and
 9. run each project's integration suite.
 
 Do not perform an untested automatic upgrade of the shared central service.
@@ -1679,7 +1694,7 @@ Do not perform an untested automatic upgrade of the shared central service.
 ## Central server commands
 
 ```powershell
-cd C:\Project_help\AWS_MOCK\host-moto
+cd <repository-root>\host-moto
 
 # First-time installation
 .\scripts\Install-AwsMock.ps1
@@ -1694,10 +1709,10 @@ cd C:\Project_help\AWS_MOCK\host-moto
 ## Application project commands
 
 ```powershell
-. C:\Project_help\AWS_MOCK\host-moto\scripts\Use-AwsMock.ps1
+. <repository-root>\host-moto\scripts\Use-AwsMock.ps1
 Enable-AwsMock
 
-cd C:\Path\To\YourProject
+cd <application-root>
 # Start the application here.
 
 Disable-AwsMock
@@ -1728,7 +1743,7 @@ numbered sections, link colors, and a generated table of contents.
 After installing Pandoc and a supported PDF engine:
 
 ```powershell
-cd C:\Project_help\AWS_MOCK
+cd <repository-root>
 
 pandoc .\AWS_MOCK_COMPLETE_GUIDE.md `
     --output .\AWS_MOCK_COMPLETE_GUIDE.pdf `
@@ -1767,6 +1782,15 @@ After conversion, verify:
   <https://docs.getmoto.org/en/latest/docs/configuration/recorder/>
 - AWS CLI command reference:
   <https://docs.aws.amazon.com/cli/latest/reference/>
+
+# License and disclaimer
+
+This repository is licensed under the Apache License 2.0. See `LICENSE` and
+`NOTICE` in the repository root.
+
+This is an independent development project built using Moto. It is not
+affiliated with, sponsored by, or endorsed by Amazon Web Services. AWS service
+names are used only to describe API compatibility and integrations.
 
 # Final readiness checklist
 
